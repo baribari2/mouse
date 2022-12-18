@@ -8,8 +8,9 @@ import (
 )
 
 var (
-	PK      string
-	ADDMAIN string
+	PK           string
+	ADD          string
+	RPC_ENDPOINT string
 )
 
 func getEnv(env string) string {
@@ -25,5 +26,6 @@ func init() {
 	godotenv.Load()
 
 	PK = getEnv("PK")
-	ADDMAIN = getEnv("ADDMAIN")
+	ADD = getEnv("ADD")
+	RPC_ENDPOINT = getEnv("RPC_ENDPOINT")
 }
