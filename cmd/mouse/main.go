@@ -13,7 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
-var BANNED = []string{
+var SPAM_SIGNATURES = []string{
 	"join_tg_invmru_haha",
 	"CheckOutBoringSecurity",
 	"niceFunctionHerePlzClick",
@@ -21,6 +21,9 @@ var BANNED = []string{
 	"func_2093253501",
 	"many_msg_babbage",
 	"sign_szabo_bytecode",
+	"transfer_attention_tg",
+	"JunionYoutubeXD_dashhvetozhe",
+	"cryethereum_",
 }
 
 // TODO: Add support for multiple txpools
@@ -46,6 +49,7 @@ func main() {
 	_, err = gc.SubscribePendingTransactions(context.Background(), ch)
 	if err != nil {
 		log.Fatalf("failed to sub to pending transactions: %v", err.Error())
+		return
 	}
 
 	// check for a lot of leading 0's (filter out seaport)
@@ -63,7 +67,7 @@ func main() {
 		}
 
 		if len(tx.Data()) > 3 {
-			_, err = AnalyzeTx(tx)
+			_, err = AnalyzeTx(ec, tx)
 			if err != nil {
 				log.Printf("\x1b[31m%s\x1b[0m%v", "failed to analyze tx: ", err.Error())
 				continue
@@ -71,56 +75,5 @@ func main() {
 		}
 	}
 }
-
-// Uses samczsun's endpoint to convert sig to name
-// func convertSigSam(sig string) (string, error) {
-// 	if len(sig) < 7 {
-// 		return "", errors.New("invalid sig length")
-// 	}
-
-// 	var rs struct {
-// 		Ok     bool `json:"ok"`
-// 		Result struct {
-// 			Event    struct{} `json:"event"`
-// 			Function struct {
-// 				Sig []struct {
-// 					Name     string `json:"name"`
-// 					Filtered bool   `json:"filtered"`
-// 				}
-// 			} `json:"function"`
-// 		} `json:"result"`
-// 	}
-
-// 	res, err := qst.Get(
-// 		"https://sig.eth.samczsun.com/api/v1/signatures",
-// 		qst.QueryValue("function", sig),
-// 	)
-
-// 	if err != nil {
-// 		return "", err
-// 	}
-
-// 	if res.ContentLength == 0 {
-// 		return "", errors.New("no content")
-// 	}
-
-// 	var ts struct {
-// 		Ok      bool          `json:"ok"`
-// 		Results []interface{} `json:"results"`
-// 	}
-
-// 	err = json.NewDecoder(res.Body).Decode(&ts)
-// 	if err != nil {
-// 		return "", err
-// 	}
-
-// 	log.Printf("Sig: %v", rs)
-
-// 	if !rs.Ok {
-// 		return "", errors.New("not ok")
-// 	}
-
-// 	return "", nil
-// }
 
 // If not array or struct, and has more than the amount of parameters in the calldata, its invalid

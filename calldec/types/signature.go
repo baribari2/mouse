@@ -33,5 +33,8 @@ type MouseTx struct {
 	To                 *common.Address
 	Value              *big.Int
 	Type               uint8
+	ExecuteResult      []byte
+	TargetCode         string
+	DecodedInputs      []string
 	sync.Mutex
 }

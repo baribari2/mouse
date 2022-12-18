@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/big"
 	"mouse/calldec/types"
+	"strings"
 
 	"github.com/broothie/qst"
 	"github.com/ethereum/go-ethereum/common"
@@ -90,6 +91,16 @@ func DecodeCalldata(m *types.MouseTx, calldata []byte) (mouseTx *types.MouseTx, 
 		return nil, err
 	}
 
+	for _, sig := range m.PossibleSignatures[0].Arguments.TextArguments {
+		if strings.Contains(sig, "[") || strings.Contains(sig, "]") {
+			continue
+		}
+
+		if strings.Count(sig, "(") > 1 {
+			continue
+		}
+	}
+
 	return m, nil
 }
 
@@ -139,6 +150,55 @@ func SigToText(sig string) (textSignatures []string, hexSignatures []string, err
 	}
 
 	return
+}
+
+// Uses samczsun's endpoint to convert sig to name
+func SigToText2(sig string) (signature string, err error) {
+	if len(sig) < 8 {
+		return "", errors.New("invalid sig length")
+	}
+
+	var rs struct {
+		Ok     bool `json:"ok"`
+		Result struct {
+			Event    struct{} `json:"event"`
+			Function struct {
+				Sig []struct {
+					Name     string `json:"name"`
+					Filtered bool   `json:"filtered"`
+				}
+			} `json:"function"`
+		} `json:"result"`
+	}
+
+	rss, _ := json.Marshal(rs)
+	var am interface{}
+	json.Unmarshal(rss, &am)
+
+	cm := am.(map[string]interface{})
+
+	log.Printf("Sig: %+v", cm)
+
+	res, err := qst.Get(
+		"https://sig.eth.samczsun.com/api/v1/signatures",
+		qst.QueryValue("function", sig),
+		qst.Header("Content-Type", "application/json"),
+	)
+
+	if err != nil {
+		return "", err
+	}
+
+	err = json.NewDecoder(res.Body).Decode(&rs)
+	if err != nil {
+		return "", err
+	}
+
+	if !rs.Ok {
+		return "", errors.New("not ok")
+	}
+
+	return "", nil
 }
 
 func filterSpamSignatures(textSignatures, hexSignatures []string) (filteredText, filteredHex []string) {
