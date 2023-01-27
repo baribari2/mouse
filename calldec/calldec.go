@@ -5,26 +5,25 @@ import (
 	"errors"
 	"log"
 	"math/big"
-	"mouse/calldec/types"
-	"strings"
 
+	"github.com/baribari2/mouse/common/types"
 	"github.com/broothie/qst"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 var (
-	SPAM_SIGNATURES = []string{
-		"join_tg_invmru_haha",
-		"CheckOutBoringSecurity",
-		"niceFunctionHerePlzClick",
-		"watch_tg_invmru",
-		"func_2093253501",
-		"many_msg_babbage",
-		"sign_szabo_bytecode",
-		"JunionYoutubeXD_dashhvetozhe",
-		"cryethereum_",
-		"check_out_my_new_website",
+	SPAM_SIGNATURES = map[string]bool{
+		"join_tg_invmru_haha":          true,
+		"CheckOutBoringSecurity":       true,
+		"niceFunctionHerePlzClick":     true,
+		"watch_tg_invmru":              true,
+		"func_2093253501":              true,
+		"many_msg_babbage":             true,
+		"sign_szabo_bytecode":          true,
+		"JunionYoutubeXD_dashhvetozhe": true,
+		"cryethereum_":                 true,
+		"check_out_my_new_website":     true,
+		"please_fix_collisions":        true,
 	}
 )
 
@@ -43,35 +42,25 @@ func NewMouseTx(hash common.Hash, cost *big.Int, gasLimit uint64, gasPrice *big.
 }
 
 // Convert ethereum calldata to a local data structure for easier handling
-func DecodeCalldata(m *types.MouseTx, calldata []byte) (mouseTx *types.MouseTx, err error) {
-	if len(calldata) < 4 {
-		return nil, errors.New("invalid calldata length (expected at least 4 bytes)")
+func DecodeCalldata(m *types.MouseTx) (err error) {
+	if len(m.RawCalldata) < 7 {
+		return errors.New("invalid calldata length (expected at least 8 characters)")
 	}
 
-	m.ByteSignature = hexutil.Encode(calldata[:4])
-
-	// Start from 10 to skip the function selector prefixed with 0x
-	c := hexutil.Encode(calldata)
-	for i := 10; i < len(c); i += 64 {
-		if i+64 > len(c) {
-			m.Calldata = append(m.Calldata, c[i:])
-		} else {
-			m.Calldata = append(m.Calldata, c[i:i+64])
-		}
+	if m.RawCalldata[:2] == "0x" {
+		m.RawCalldata = m.RawCalldata[2:]
 	}
 
 	// Convert the signature to a string (and possible signatures)
-	ts, hs, err := SigToText(m.ByteSignature)
+	ts, hs, err := SigToText(m.RawCalldata[:8])
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	// TODO: Find less hacky way to remove banned signatures
-	s, h := filterSpamSignatures(ts, hs)
-	for i, sig := range s {
+	s, _ := filterSpamSignatures(ts, hs)
+	for _, sig := range s {
 		m.PossibleSignatures = append(m.PossibleSignatures, &types.Signature{
 			TextSignature: sig,
-			HexSignature:  h[i],
 			Arguments: &types.Argument{
 				TextArguments: []string{},
 				ABIArguments:  []string{},
@@ -82,26 +71,26 @@ func DecodeCalldata(m *types.MouseTx, calldata []byte) (mouseTx *types.MouseTx, 
 	if len(m.PossibleSignatures) > 0 {
 		err := ParseSignatures(m.PossibleSignatures)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
 	err = filterSignatures(m)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	for _, sig := range m.PossibleSignatures[0].Arguments.TextArguments {
-		if strings.Contains(sig, "[") || strings.Contains(sig, "]") {
-			continue
-		}
+	// for _, sig := range m.PossibleSignatures[0].Arguments.TextArguments {
+	// 	if strings.Contains(sig, "[") || strings.Contains(sig, "]") {
+	// 		continue
+	// 	}
 
-		if strings.Count(sig, "(") > 1 {
-			continue
-		}
-	}
+	// 	if strings.Count(sig, "(") > 1 {
+	// 		continue
+	// 	}
+	// }
 
-	return m, nil
+	return nil
 }
 
 // Uses 4byte directory to convert a function signature (prefixed with 0x) to a human readable text signature
@@ -203,19 +192,16 @@ func SigToText2(sig string) (signature string, err error) {
 
 func filterSpamSignatures(textSignatures, hexSignatures []string) (filteredText, filteredHex []string) {
 	for i, sig := range textSignatures {
-		for _, spam := range SPAM_SIGNATURES {
-			if len(sig) >= len(spam) && sig[:len(spam)] == spam {
-				textSignatures = append(textSignatures[:i], textSignatures[i+1:]...)
-				hexSignatures = append(hexSignatures[:i], hexSignatures[i+1:]...)
-			}
+
+		if _, exists := SPAM_SIGNATURES[sig]; exists {
+			textSignatures = append(textSignatures[:i], textSignatures[i+1:]...)
+			hexSignatures = append(hexSignatures[:i], hexSignatures[i+1:]...)
 		}
 	}
 
-	for _, spam := range SPAM_SIGNATURES {
-		if len(textSignatures[0]) > len(spam) && textSignatures[0][:len(spam)] == spam {
-			textSignatures = textSignatures[1:]
-			hexSignatures = hexSignatures[1:]
-		}
+	if _, exists := SPAM_SIGNATURES[textSignatures[0]]; exists {
+		textSignatures = textSignatures[1:]
+		hexSignatures = hexSignatures[1:]
 	}
 
 	for i, sig := range textSignatures {

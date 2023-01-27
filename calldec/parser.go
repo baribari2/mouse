@@ -3,17 +3,14 @@ package calldec
 import (
 	"errors"
 	"fmt"
-	"mouse/calldec/types"
 	"strings"
+
+	"github.com/baribari2/mouse/common/types"
 )
 
 // Parses signatures string for name and arguments into a local data structure for easier handling
 func ParseSignatures(signatures []*types.Signature) (err error) {
 	for _, signature := range signatures {
-		if len(signature.HexSignature) != 10 {
-			return errors.New("invalid signature length (expected at least 5 bytes)")
-		}
-
 		// Find first parenthesis to aid in getting both name and start of arguments
 		in := strings.Index(signature.TextSignature, "(")
 
