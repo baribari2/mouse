@@ -84,6 +84,10 @@ func DisassembleContract(m *types.MouseTx) error {
 func DisassembleBytecode(code string) (*types.MouseTx, error) {
 	log.Println("Disassembling contract...")
 	var pc int64 = 0
+	if strings.HasPrefix(code, "0x") {
+		code = strings.TrimPrefix(code, "0x")
+	}
+
 	var m = &types.MouseTx{
 		TargetCode: code,
 	}
@@ -109,7 +113,7 @@ func DisassembleBytecode(code string) (*types.MouseTx, error) {
 				}
 			} else {
 				num, _ = strconv.Atoi(string(op.String()[4]))
-				op.Data = m.TargetCode[pc+1 : pc+1+int64(num)*2]
+				op.Data = m.TargetCode[pc+2 : pc+2+int64(num)*2]
 			}
 
 			m.Target.Opcodes = append(m.Target.Opcodes, op)

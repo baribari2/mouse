@@ -7,8 +7,8 @@ import (
 var (
 	rootCmd = &cobra.Command{
 		Use:   "mouse",
-		Short: "mouse is a tool for analyzing Ethereum transactions",
-		Long:  `mouse is a tool for analyzing Ethereum transactions`,
+		Short: "mouse is a tool for analyzing ethereum transactions",
+		Long:  "mouse is a tool for analyzing ethereum transactions",
 		Run: func(cmd *cobra.Command, args []string) {
 			cmd.Help()
 		},

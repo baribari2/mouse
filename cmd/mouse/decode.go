@@ -1,6 +1,7 @@
 package mouse
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -22,7 +23,7 @@ var decodeCmd = &cobra.Command{
 	Long:    `Decode a transaction`,
 	Aliases: []string{"c"},
 	Run: func(cmd *cobra.Command, args []string) {
-		var m = &types.MouseTx{}
+		m := &types.MouseTx{}
 
 		if data != "" {
 			m.RawCalldata = data
@@ -50,10 +51,17 @@ var decodeCmd = &cobra.Command{
 		}
 
 		if outp != "" {
-			err = os.WriteFile(outp, []byte(m.PossibleSignatures[0].TextSignature), 0644)
+			f, err := os.Create(outp)
 			if err != nil {
-				log.Fatalf("error writing file: %v", err)
+				log.Fatalf("error creating file: %v", err)
 				return
+			}
+
+			defer f.Close()
+
+			_, err = f.WriteString(fmt.Sprintf("Decoded function signature: %v\n", m.PossibleSignatures[0].TextSignature))
+			for i, a := range m.PossibleSignatures[0].Arguments.TextArguments {
+				_, err = f.WriteString(fmt.Sprintf("  Arg %v (type): %v\n", i, a))
 			}
 		}
 	},

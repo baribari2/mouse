@@ -4,3 +4,8 @@ notes
 contracts/
 
 Makefile
+
+uniswap.hex
+uniswap.dis
+decode-complex.txt
+decode-test.txt
