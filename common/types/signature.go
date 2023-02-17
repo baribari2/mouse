@@ -7,20 +7,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// Data structure for easier handling of function parameters
-type Argument struct {
-	TextArguments []string
-	ABIArguments  []string
-}
-
-// Data structure for easier handling of function signatures
-type Signature struct {
-	Name          string
-	TextSignature string
-	HexSignature  string
-	Arguments     *Argument
-}
-
 // Data structure for easier handling of contract decompilation and transaction decoding
 type MouseTx struct {
 	// The list of possible function signatures, after seaching a database
@@ -78,4 +64,34 @@ type MouseTx struct {
 	MouseOrigin string
 
 	sync.Mutex
+}
+
+// Data structure for easier handling of function parameters
+type Argument struct {
+	TextArguments []string
+	ABIArguments  []string
+}
+
+// Data structure for easier handling of function signatures
+type Signature struct {
+	// The name of the function
+	Name string
+
+	// The text representation of the function signature
+	TextSignature string
+
+	// The hexadecimal representation of the function signature
+	HexSignature string
+
+	// The function parameters
+	Arguments *Argument
+}
+
+func NewSignature(name string, textSignature string, hexSignature string, arguments *Argument) *Signature {
+	return &Signature{
+		Name:          name,
+		TextSignature: textSignature,
+		HexSignature:  hexSignature,
+		Arguments:     arguments,
+	}
 }

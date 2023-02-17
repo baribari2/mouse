@@ -1,13 +1,5 @@
 package types
 
-type Opcode struct {
-	Instruction string
-	Number      string
-	Inputs      int64
-	Outputs     int64
-	Data        string
-}
-
 var (
 	OPCODES = map[string]*Opcode{
 		"00": {"STOP", "00", 0, 0, ""},
@@ -156,6 +148,54 @@ var (
 	}
 )
 
+type Opcode struct {
+	// The name of the opcode
+	instruction string
+
+	// The number of the opcode in the instruction set
+	number string
+
+	// The number of inputs the opcode requires
+	inputs int64
+
+	// The number of outputs the opcode produces
+	outputs int64
+
+	// The data associated with the opcode
+	Data string
+}
+
+func NewOpcode(instruction string, number string, inputs int64, outputs int64, data string) *Opcode {
+	return &Opcode{
+		instruction: instruction,
+		number:      number,
+		inputs:      inputs,
+		outputs:     outputs,
+		Data:        data,
+	}
+}
+
+// Returns the name of the opcode
+func (o *Opcode) Instruction() string {
+	return o.instruction
+}
+
+// Returns the number of the opcode in the instruction set
+func (o *Opcode) Number() string {
+	return o.number
+}
+
+// Returns the number of inputs the opcode requires
+func (o *Opcode) Inputs() int64 {
+	return o.inputs
+}
+
+// Returns the number of outputs the opcode produces
+func (o *Opcode) Outputs() int64 {
+	return o.outputs
+}
+
+// Returns the opcode associated with the given name
 func MatchOpcode(op string) *Opcode {
 	opcode, ok := OPCODES[op]
 	if !ok {
@@ -163,16 +203,4 @@ func MatchOpcode(op string) *Opcode {
 	}
 
 	return opcode
-}
-
-func (o *Opcode) String() string {
-	return o.Instruction
-}
-
-func (o *Opcode) GetInputs() int64 {
-	return o.Inputs
-}
-
-func (o *Opcode) GetOutputs() int64 {
-	return o.Outputs
 }

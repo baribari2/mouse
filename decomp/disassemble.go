@@ -49,23 +49,18 @@ func DisassembleContract(m *types.MouseTx) error {
 		o := m.TargetCode[pc : pc+2]
 		op := types.MatchOpcode(o)
 		if op == nil {
-			op = &types.Opcode{
-				Instruction: "XXXXXXXXXX",
-				Number:      "xx",
-				Inputs:      0,
-				Outputs:     0,
-			}
+			op = types.NewOpcode("XXXXXXXXXX", "xx", 0, 0, "")
 		}
 
-		if strings.Contains(op.String(), "PUSH") {
+		if strings.Contains(op.Instruction(), "PUSH") {
 			var num int
-			if len(op.String()[4:]) > 1 {
-				num, _ = strconv.Atoi(op.String()[4:])
+			if len(op.Instruction()[4:]) > 1 {
+				num, _ = strconv.Atoi(op.Instruction()[4:])
 				if pc+2+int64(num)*2 < int64(len(m.TargetCode)) {
 					op.Data = m.TargetCode[pc+2 : pc+2+int64(num)*2]
 				}
 			} else {
-				num, _ = strconv.Atoi(string(op.String()[4]))
+				num, _ = strconv.Atoi(string(op.Instruction()[4]))
 				op.Data = m.TargetCode[pc+2 : pc+2+int64(num)*2]
 			}
 
@@ -96,23 +91,18 @@ func DisassembleBytecode(code string) (*types.MouseTx, error) {
 		o := m.TargetCode[pc : pc+2]
 		op := types.MatchOpcode(o)
 		if op == nil {
-			op = &types.Opcode{
-				Instruction: "XXXXXXXXXX",
-				Number:      "xx",
-				Inputs:      0,
-				Outputs:     0,
-			}
+			op = types.NewOpcode("XXXXXXXXXX", "xx", 0, 0, "")
 		}
 
-		if strings.Contains(op.String(), "PUSH") {
+		if strings.Contains(op.Instruction(), "PUSH") {
 			var num int
-			if len(op.String()[4:]) > 1 {
-				num, _ = strconv.Atoi(op.String()[4:])
+			if len(op.Instruction()[4:]) > 1 {
+				num, _ = strconv.Atoi(op.Instruction()[4:])
 				if pc+2+int64(num)*2 < int64(len(m.TargetCode)) {
 					op.Data = m.TargetCode[pc+2 : pc+2+int64(num)*2]
 				}
 			} else {
-				num, _ = strconv.Atoi(string(op.String()[4]))
+				num, _ = strconv.Atoi(string(op.Instruction()[4]))
 				op.Data = m.TargetCode[pc+2 : pc+2+int64(num)*2]
 			}
 

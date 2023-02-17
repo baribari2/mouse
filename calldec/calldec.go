@@ -57,15 +57,9 @@ func DecodeCalldata(m *types.MouseTx) (err error) {
 		return err
 	}
 
-	s, _ := filterSpamSignatures(ts, hs)
-	for _, sig := range s {
-		m.PossibleSignatures = append(m.PossibleSignatures, &types.Signature{
-			TextSignature: sig,
-			Arguments: &types.Argument{
-				TextArguments: []string{},
-				ABIArguments:  []string{},
-			},
-		})
+	s, z := filterSpamSignatures(ts, hs)
+	for i, sig := range s {
+		m.PossibleSignatures = append(m.PossibleSignatures, types.NewSignature("", sig, z[i], nil))
 	}
 
 	if len(m.PossibleSignatures) > 0 {
